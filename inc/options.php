@@ -14,25 +14,40 @@ add_action( 'wpr_optionsframework_after', 'wpr_support_link' );
 
 function wpr_support_link() { 
 	$options = get_option( 'wprmenu_options' );
-	if( !empty($options['wpr_live_preview']) && $options['wpr_live_preview'] == 1 ) : ?>
-	<div class="queries-holder live-preview">	
-		<div class="wpr-mobile-view">
-			<iframe scrolling="no" src="<?php echo get_site_url(); ?>"></iframe>
+	?>
+		<div class="queries-holder live-preview">	
+			<div class="live-preview-badge"><?php _e('Show Live Preview', 'wprmenu'); ?></div>
+			<div class="live-preview-container disable">
+				
+				<div class="wpr-load-preview-wrap">
+					<span class="wpr-load-priv"><?php _e('Click Here To Load Preview', 'wprmenu'); ?></span>
+				</div>
+
+				<div class="wpr-smartphone">
+					<div class="smartphone-content">
+						<div class="overlay"></div>
+						<iframe id="wpr_iframe" scrolling="yes" style="width: 100%; border: none; height: 100%;" src="<?php echo get_site_url(); ?>"></iframe>
+					</div>
+				</div>
+
+			</div>
 		</div>
+
+	<?php 
+	/*
+	<div class="queries-holder">
+		<a href="http://magnigenie.com/open-ticket/" target="_blank">
+			<img src="<?php echo WPR_PRO_OPTIONS_FRAMEWORK_DIRECTORY;?>/images/support.jpg" alt="support">
+		</a>
 	</div>
-	<?php endif; ?>	
 
 	<div class="queries-holder">
-		<a href="http://magnigenie.com/downloads/wp-responsive-menu-pro/" target="_blank">
-			<img src="<?php echo WPR_OPTIONS_FRAMEWORK_DIRECTORY;?>/images/pro.jpg" alt="pro">
-		</a>
-		<a href="https://wordpress.org/support/plugin/wp-responsive-menu/reviews/" target="_blank">
-			<img src="<?php echo WPR_OPTIONS_FRAMEWORK_DIRECTORY;?>/images/review.jpg" alt="review">
-		</a>
-		<a href="http://magnigenie.com/support/queries/wp-responsive-menu/" target="_blank">
-			<img src="<?php echo WPR_OPTIONS_FRAMEWORK_DIRECTORY;?>/images/support.jpg" alt="support">
+		<a href="http://magnigenie.com/purchase-history" target="_blank">
+			<img src="<?php echo WPR_PRO_OPTIONS_FRAMEWORK_DIRECTORY;?>/images/review.jpg" alt="review">
 		</a>
 	</div>
+	*/
+	?>
 	<?php
 }
 
@@ -524,10 +539,92 @@ function wpr_optionsframework_options() {
 	'options' => array( 'repeat' => 'Repeat','no-repeat' => 'No repeat' ),
 	'type' 		=> 'radio' );
 
+	$options[] = array( 'name' => __( 'Enable Menu Background Overlay', 'wprmenu' ),
+		'desc' 		=> __( 'Turn on if you want to enable Menu Background Overlay.', 'wprmenu' ),
+		'id' 			=> 'enable_overlay',
+		'std' 		=> '1',
+		'type' 		=> 'checkbox' );
+
+	$options[] = array( 'name' => __( 'Menu Background Overlay Opacity', 'wprmenu' ),
+		'desc' 		=> __( 'Set menu background overlay opacity.', 'wprmenu' ),
+		'id' 			=> 'menu_background_overlay_opacity',
+		'std' 		=> '0.83',
+		'type' 		=> 'text' );
+
 	$options[] = array( 'name' => __( 'Menu elements position', 'wprmenu' ),
 	'desc' 		=> __( 'Drag and drop to reorder the menu elements.', 'wprmenu' ),
 	'id' 			=> 'order_menu_items',
 	'type' 		=> 'menusort' );
+
+	$options[] = array( 'name' => __( 'Widget Menu<span class="badge badge-info">Pro</span>', 'wprmenu' ),
+		'type' => 'heading', 
+	);
+
+	$options[] = array('name' => __('Widget Menu Icon', 'wprmenu'),
+		'id' 			=> 'widget_menu_icon',
+		'std' 		=> 'wpr-icon-menu',
+		'desc' 		=> __( 'Set widget menu icon', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+		'type' 		=> 'icon');
+
+	$options[] = array('name' => __('Widget Menu Close Icon', 'wprmenu'),
+		'id' 			=> 'widget_menu_close_icon',
+		'std' 		=> 'wpr-icon-cancel2',
+		'desc' 		=> __( 'Set widget menu close icon', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+		'type' 		=> 'icon');
+
+	$options[] = array( 'name' => __( 'Wiget Menu Icon Size', 'wprmenu' ),
+		'desc' 		=> __( 'Set widget menu font size', 'wprmenu' ),
+		'id' 			=> 'widget_menu_font_size',
+		'desc' 		=> __( 'Set widget menu icon size', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+		'std' 		=> '28',
+		'type' 		=> 'text' );
+
+	$options[] = array( 'name' => __( 'Wiget Menu Top Position', 'wprmenu' ),
+		'desc' 		=> __( 'Set widget menu position from top', 'wprmenu' ),
+		'id' 			=> 'widget_menu_top_position',
+		'class' 	=> 'mini pro-feature',
+		'std' 		=> '0',
+		'type' 		=> 'text' );
+
+	$options[] = array( 'name' => __( 'Widget Menu Icon Color', 'wprmenu' ),
+		'id'			=> 'widget_menu_icon_color',
+		'std'			=> '#FFFFFF',
+		'class' 	=> 'mini pro-feature',
+		'desc' 		=> __( 'Set widget menu icon color', 'wprmenu' ),
+		'type'		=> 'color' );
+
+	$options[] = array( 'name' => __( 'Widget Menu Close Icon Color', 'wprmenu' ),
+		'desc' 			=> __( 'Select the direction from where widget menu will open.', 'wprmenu' ),
+		'id'			=> 'widget_menu_icon_active_color',
+		'class' 	=> 'mini pro-feature',
+		'std'			=> '#FFFFFF',
+		'desc' 		=> __( 'Set widget menu close icon color', 'wprmenu' ),
+		'type'		=> 'color' );
+
+	$options[] = array( 'name' => __( 'Widget Menu Elements Background Color', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+		'id'			=> 'widget_menu_bg_color',
+		'desc' 		=> __( 'Set widget menu elements background color', 'wprmenu' ),
+		'std'			=> '#c82d2d',
+		'type'		=> 'color' );
+
+	$options[] = array( 'name' => __( 'Widget Menu Elements Color', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+		'desc' 		=> __( 'Set widget menu elements font color', 'wprmenu' ),
+		'id'			=> 'widget_menu_text_color',
+		'std'			=> '#FFFFFF',
+		'type'		=> 'color' );
+
+	$options[] = array( 'name' => __( 'Widget Menu Open Direction', 'wprmenu' ),
+		'class' 	=> 'mini pro-feature',
+	'desc' 			=> __( 'Select the direction from where widget menu will open.', 'wprmenu' ),
+	'id' 				=> 'widget_menu_open_direction',
+	'std' 			=> 'left',
+	'options' 	=> array( 'left' => 'Left','right' => 'Right', 'top' => 'Top', 'bottom' => 'Bottom' ),
+	'type' 			=> 'radio' );
 
 	$options[] = array( 'name' => __( 'Color', 'wprmenu' ),
 		'type' => 'heading' );
@@ -643,6 +740,11 @@ function wpr_optionsframework_options() {
 		'class' => 'pro-feature',
 		'type' 	=> 'color' );
 
+		$options[] = array( 'name' => __( 'Menu Background Overlay Color', 'wprmenu' ),
+		'id'			=> 'menu_bg_overlay_color',
+		'std'			=> '#000000',
+		'type'		=> 'color' );
+
 	endif;
 
 	$options[] = array( 'name' => __( 'Fonts<span class="badge badge-info">Pro</span>', 'wprmenu' ),
@@ -754,5 +856,14 @@ function wpr_optionsframework_options() {
 		'class' => 'pro-feature',
 		'std' 	=> '',
 		'type' 	=> 'social');
+
+	$options[] = array( 'name' => __( 'Demo Data', 'wprmenu' ),
+		'type' 		=> 'heading' );
+
+	$options[] = array('name' => __('', 'wprmenu'),
+		'id' 			=> 'wprmenu_showcase',
+		'class' 	=> 'pro',
+		'std' 		=> '',
+		'type' 		=> 'showcase');
     return $options;
 }

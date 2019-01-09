@@ -21,13 +21,39 @@ class MgWprm {
 		add_action( 'plugins_loaded', array($this, 'wprmenu_register_strings'));
 
 		add_action( 'wp_footer', array($this, 'wpr_custom_css') );
+
+		//Live preview
+		add_action( 'wp_ajax_wpr_live_update', array($this, 'wpr_live_update'));
+
+		add_action( 'wp_ajax_wprmenu_import_data', array($this, 'wprmenu_import_data') );
 	}
 
 	public function option( $option ){
-		if( isset( $this->options[$option] ) )
-			return $this->options[$option];
-		return '';
+
+		// if( isset( $this->options[$option] ) )
+		// 	return $this->options[$option];
+		// return '';
+		if( isset($_COOKIE['wprmenu_live_preview']) 
+			&& $_COOKIE['wprmenu_live_preview'] == 'yes' ) {
+			$check_transient = get_transient('wpr_live_settings');
+
+			if( $check_transient ) {
+				if( isset( $check_transient[$option] ) 
+					&& $check_transient[$option] != '' ) {
+						return $check_transient[$option];
+				}
+			}
+			else {
+				if( isset( $this->options[$option] ) && $this->options[$option] != '' )
+					return $this->options[$option];
+			}
+		}
+		else {
+			if( isset( $this->options[$option] ) && $this->options[$option] != '' )
+				return $this->options[$option];
+		}
 	}
+
 
 	public function wprmenu_register_strings() {
 		if( is_admin() ) :
@@ -197,29 +223,41 @@ class MgWprm {
 			//Menu Bar Height
 			$menu_padding = $this->option("header_menu_height");
 			$menu_padding = intval($menu_padding);
+			$menu_bar_height = $menu_padding;
 
-			if( $menu_padding > 50 ) {
-				$top_position = $menu_padding + 30;
-				$menu_padding = $menu_padding - 27;
-				$menu_padding = $menu_padding / 2;
-				
+			if( $this->option('menu_type') == 'default' ) {
+				if( $menu_padding > 50 ) {
+					$top_position = $menu_padding + 30;
+					$menu_padding = $menu_padding - 27;
+					$menu_padding = $menu_padding / 2;
+					$admin_bar_top = $top_position + 15;
 
-				$inlinecss .= 'html body div#wprmenu_bar {
-					padding-top: '.$menu_padding.'px;
-					padding-bottom: '.$menu_padding.'px;
-				}';
+					$inlinecss .= 'html body div#wprmenu_bar {
+						padding-top: '.$menu_padding.'px;
+						padding-bottom: '.$menu_padding.'px;
+					}';
 
-				$inlinecss .= 'html body #mg-wprm-wrap {
-					top: '.$top_position.'px !important;
-				}';
+					$inlinecss .= 'html body #mg-wprm-wrap {
+						top: '.$menu_bar_height.'px !important;
+					}';
+
+					$inlinecss .= 'html body.admin-bar #mg-wprm-wrap {
+						top: '.$admin_bar_top.'px !important;
+					}';
 					
-			}
+				}
 				
-			$inlinecss .= 'html body div#wprmenu_bar {
-				height : '.$this->option("header_menu_height").'px;
-			}';
+				$inlinecss .= 'html body div#wprmenu_bar {
+					height : '.$this->option("header_menu_height").'px;
+				}';
+			}
 
-
+			//Overlay Style
+			if( $this->option('enable_overlay') == '1' ) :
+				$overlay_bg_color = $this->hex2rgba($this->option("menu_bg_overlay_color"), $this->option("menu_background_overlay_opacity"));
+				$inlinecss .= 'html body div.wprm-overlay{ background: '.$overlay_bg_color .' }';
+			endif;
+			
 			if( $this->option('menu_symbol_pos') == 'left' ) :
 				$inlinecss .= 'div.wprmenu_bar div.hamburger{padding-right: 6px !important;}';
 			endif;
@@ -300,6 +338,7 @@ class MgWprm {
 	public function wprm_enque_scripts() {
 		//hamburger menu icon style
 		wp_enqueue_style( 'hamburger.css' , plugins_url().'/wp-responsive-menu/css/wpr-hamburger.css', array(), '1.0' );
+		
 		//menu css
 		wp_enqueue_style( 'wprmenu.css' , plugins_url().'/wp-responsive-menu/css/wprmenu.css', array(), '1.0' );
 
@@ -325,6 +364,7 @@ class MgWprm {
 		 		'menu_width' 	=> $this->option('how_wide'),
 		 		'parent_click' 	=> $this->option('parent_click'),
 		 		'swipe' 		=> $this->option('swipe'),
+		 		'enable_overlay' => $this->option('enable_overlay'),
 		 	);
 		//Localize necessary variables
 		wp_localize_script( 'wprmenu.js', 'wprmenu', $wpr_options );
@@ -355,7 +395,11 @@ class MgWprm {
 			$menu_title = function_exists('pll__') ? pll__($menu_title) : $menu_title;
 
 			$menu_icon_animation = $this->option('menu_icon_animation') != '' ? $this->option('menu_icon_animation') : 'hamburger--slider'; 
-			
+
+			?>
+			<div class="wprm-wrapper">
+				<div class="wprm-overlay"></div>
+			<?php
 			if( $this->option('menu_type') == 'custom' ): ?>
 				<div class="wprmenu_bar custMenu <?php echo $this->option('slide_type'); echo ' '.$this->option('position'); ?>">
 					<div id="custom_menu_icon" class="hamburger <?php echo $menu_icon_animation; ?>">
@@ -465,6 +509,7 @@ class MgWprm {
 					?>
 				</ul>
 			</div>
+			</div>
 			<?php
 		endif;
 	}
@@ -483,6 +528,69 @@ class MgWprm {
 		</style>
 		<?php
 		endif;
+	}
+
+	public function wpr_live_update() {
+		if( isset($_POST['wprmenu_options']) ) {
+			delete_transient('wpr_live_settings');
+			set_transient('wpr_live_settings', $_POST['wprmenu_options'], 60 * 60 * 24);
+		}
+		wp_die();
+	}
+
+	//Import demo data
+	public function wprmenu_import_data() {
+		
+		$response = 'error';
+		$menu = '';
+		
+		if( isset($_POST) ) {
+			$path = isset($_POST['demo_path']) ? $_POST['demo_path'] : '';
+			$settings_id = isset($_POST['settings_id']) ? $_POST['settings_id'] : '';
+
+
+			if( $settings_id !== '' && $path !== '' ) {
+
+				if( $this->option('menu') ) {
+					$menu = $this->option('menu');
+				}
+
+				$content = file_get_contents($path.'/'.$settings_id);
+
+				if( function_exists("mb_convert_encoding") ){
+					$content = mb_convert_encoding($content, 'UTF-8', 
+					mb_detect_encoding($content, 'UTF-8, ISO-8859-1', true));
+				}
+				$content = str_replace("\xEF\xBB\xBF",'',$content); 
+
+				$content = maybe_unserialize($content);
+				
+				if( is_array($content) ) {
+					$content['menu'] = $menu;
+				}
+
+				$content = maybe_serialize($content);
+				
+				global $wpdb;
+				
+				$wpdb->update(
+					$wpdb->prefix.'options',
+					array(
+						'option_value' => $content,
+					),
+					array(
+						'option_name' => 'wprmenu_options',
+					)
+				);
+
+				$response = 'success';
+			}
+			else {
+				$response = 'error';
+			}
+		}
+		echo json_encode( array('response' => $response) );		
+		wp_die();
 	}
 
 }

@@ -69,12 +69,13 @@ If you have any  suggestions for a new plugin, feel free to email us at info@mag
 = Version 3.0.5 =
 
 * Optimized code
-* Added developer hooks for before menu element
-* Added developer hooks for after menu element
+* Added developer hooks for before menu element and after menu element
 * Added custom css editor
-* Added WYSIWYG editor for before menu content 
-* Added WYSIWYG editor for after menu content
+* Added WYSIWYG editor for before menu content and after menu content
+* Option added for menu bar height
+* 
 * Code optimized
+* Css optimized
 
 = Version 3.0.4 =
 

@@ -43,6 +43,8 @@ class Wpr_Options_Framework_Admin {
 			// Adds options menu to the admin bar
 			add_action( 'wp_before_admin_bar_render', array( $this, 'wpr_optionsframework_admin_bar' ) );
 
+			
+
 		}
 
     }
@@ -188,12 +190,24 @@ class Wpr_Options_Framework_Admin {
 	  // Enqueue icon-picker js
 		wp_enqueue_script( 'icon-picker', WPR_OPTIONS_FRAMEWORK_DIRECTORY . 'js/jquery.fonticonpicker.min.js', array( 'jquery' ), Wpr_Options_Framework::VERSION );
 
-		// Enqueue custom option panel JS
-		wp_enqueue_script( 'options-custom', WPR_OPTIONS_FRAMEWORK_DIRECTORY . 'js/options-custom.js', array( 'jquery','wp-color-picker', 'Select2-js', 'wpr-ace' ), Wpr_Options_Framework::VERSION );
+		//Exit Intent
+		wp_enqueue_script( 'wpr-exit-intent', WPR_OPTIONS_FRAMEWORK_DIRECTORY . 'js/wpr-exit-intent.js', array( 'jquery' ), Wpr_Options_Framework::VERSION );
 
-		$option_var = array( 'options_path' => WPR_OPTIONS_FRAMEWORK_DIRECTORY,
-										'ajax_url'  	 =>  admin_url( 'admin-ajax.php' ),
-									);
+		// Enqueue custom option panel JS
+		wp_enqueue_script( 'options-custom', WPR_OPTIONS_FRAMEWORK_DIRECTORY . 'js/options-custom.js', array( 'jquery','wp-color-picker', 'Select2-js', 'wpr-ace', 'wpr-exit-intent' ), Wpr_Options_Framework::VERSION );
+
+		$option_var = array( 
+			'options_path' 			=> WPR_OPTIONS_FRAMEWORK_DIRECTORY,
+			'ajax_url'  	 		=>  admin_url( 'admin-ajax.php' ),
+			'view_demo'				=> __('View Demo', 'wprmenu'),
+			'import_demo'			=> __('Import Demo', 'wprmenu'),
+			'import_error'			=> __('Something went wrong', 'wprmenu'),
+			'please_wait'			=> __('Please Wait !', 'wprmenu'),
+			'import_done'			=> __('Import Done', 'wprmenu'),
+			'update_license_key'	=> __('Please Update Your License Key To Import Demo', 'wprmenu'),
+			'pro_message'			=> __('Import requires PRO version', 'wprmenu'),
+			'site_url'				=> get_site_url(),
+		);
 		wp_localize_script( 'options-custom', 'wprOption' , $option_var );
 
 		// Inline scripts from options-interface.php
@@ -313,6 +327,12 @@ class Wpr_Options_Framework_Admin {
 
 		// Hook to run after validation
 		do_action( 'wpr_optionsframework_after_validate', $clean );
+		
+		if (isset($_COOKIE['wprmenu_live_preview']) && $_COOKIE['wprmenu_live_preview'] == 'yes' ) {
+    	unset($_COOKIE['wprmenu_live_preview']);
+    	setcookie('wprmenu_live_preview', null, -1, '/');
+		} 
+
 
 		return $clean;
 	}
@@ -383,5 +403,9 @@ class Wpr_Options_Framework_Admin {
 
 		$wp_admin_bar->add_menu( apply_filters( 'wpr_optionsframework_admin_bar', $args ) );
 	}
+
+
+
+	
 
 }
